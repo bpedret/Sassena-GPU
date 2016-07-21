@@ -1,0 +1,163 @@
+SET(cmake_policy NO_POLICY_SCOPE)
+
+INCLUDE_DIRECTORIES(${Sassena_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES (${CUDA_INCLUDE_DIRS})
+
+message ("CUDA found in this directory:${CUDA_INCLUDE_DIRS}")
+LINK_DIRECTORIES (${CUDA_TOOLKIT_ROOT_DIR}/lib64)
+
+
+ADD_LIBRARY(sass_math ${INTERNAL_LIBRARY_TYPE}
+	src/math/coor3d.cpp
+	src/math/smath.cpp
+)
+
+ADD_LIBRARY(sass_log ${INTERNAL_LIBRARY_TYPE}
+	src/log/log.cpp
+)
+
+ADD_LIBRARY(sass_controlio ${INTERNAL_LIBRARY_TYPE}
+	src/io/xml_interface.cpp
+	src/control/parameters.cpp
+	src/control/database.cpp
+)
+
+ADD_LIBRARY(sass_sample ${INTERNAL_LIBRARY_TYPE}
+	src/sample/sample.cpp
+	src/sample/atom.cpp
+	src/sample/atoms.cpp
+	src/sample/atomselection.cpp
+	src/sample/atomselections.cpp	
+	src/sample/atomselection_reader.cpp	
+	src/sample/center_of_mass.cpp	
+	src/sample/coordinate_set.cpp
+	src/sample/coordinate_sets.cpp
+	src/sample/frame.cpp
+	src/sample/frames.cpp
+	src/sample/frameset_index.cpp
+	src/sample/motion_walker.cpp	
+)
+
+ADD_LIBRARY(sass_decomposition ${INTERNAL_LIBRARY_TYPE}
+    src/decomposition/assignment.cpp
+	src/decomposition/decomposition_plan.cpp	
+)
+
+ADD_LIBRARY(sass_mpi ${INTERNAL_LIBRARY_TYPE}
+	src/mpi/wrapper.cpp
+)
+
+ADD_LIBRARY(sass_report ${INTERNAL_LIBRARY_TYPE}
+	src/report/performance_analyzer.cpp
+	src/report/timer.cpp
+)
+
+ADD_LIBRARY(sass_services ${INTERNAL_LIBRARY_TYPE}
+	src/services/file_writer_service.cpp
+	src/services/monitor_service.cpp	
+)
+
+ADD_LIBRARY(sass_stager ${INTERNAL_LIBRARY_TYPE}
+        src/stager/coordinate_writer.cpp	
+	src/stager/data_stager.cpp		
+)
+
+ADD_LIBRARY(sass_scatter_devices ${INTERNAL_LIBRARY_TYPE}
+	src/scatter_devices/scatter_factors.cpp
+	src/scatter_devices/scatter_device_factory.cpp
+	src/scatter_devices/all_vectors_scatter_device.cpp	
+	src/scatter_devices/multipole_scatter_device.cpp	
+        src/scatter_devices/abstract_scatter_device.cpp
+        src/scatter_devices/abstract_vectors_scatter_device.cpp
+	src/scatter_devices/self_vectors_scatter_device.cpp	
+)
+
+IF(STATIC)
+SET_TARGET_PROPERTIES(sass_math PROPERTIES LINK_SEARCH_END_STATIC 1)
+SET_TARGET_PROPERTIES(sass_log PROPERTIES LINK_SEARCH_END_STATIC 1)
+SET_TARGET_PROPERTIES(sass_controlio PROPERTIES LINK_SEARCH_END_STATIC 1)
+SET_TARGET_PROPERTIES(sass_report PROPERTIES LINK_SEARCH_END_STATIC 1)
+SET_TARGET_PROPERTIES(sass_mpi PROPERTIES LINK_SEARCH_END_STATIC 1)
+SET_TARGET_PROPERTIES(sass_decomposition PROPERTIES LINK_SEARCH_END_STATIC 1)
+SET_TARGET_PROPERTIES(sass_stager PROPERTIES LINK_SEARCH_END_STATIC 1)
+SET_TARGET_PROPERTIES(sass_scatter_devices PROPERTIES LINK_SEARCH_END_STATIC 1)
+ENDIF(STATIC)
+
+TARGET_LINK_LIBRARIES (sass_math
+	${Boost_LIBRARIES}
+	#${CUDA_TOOLKIT_ROOT_DIR}/lib64
+	cufftw
+	#cuComplex
+)
+
+TARGET_LINK_LIBRARIES (sass_log
+	${Boost_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES (sass_controlio
+	sass_math
+	sass_log	
+	${Boost_LIBRARIES}
+	${LIBXML2_LIBRARIES}
+	${ZLIB_LIBRARIES}
+	${HDF5_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES (sass_sample
+	sass_math
+	sass_log	
+    	sass_vendor_xdrfile
+	sass_controlio
+	${ZLIB_LIBRARIES}
+	${Boost_LIBRARIES}
+	${LAPACK_LIBRARIES} 	
+)
+
+TARGET_LINK_LIBRARIES (sass_mpi
+    sass_log	
+	sass_controlio
+	sass_sample
+	${Boost_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES (sass_report
+	sass_log	
+	sass_controlio
+	sass_mpi
+	${Boost_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES (sass_decomposition
+	sass_controlio
+	sass_sample
+	${Boost_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES (sass_services
+	sass_controlio
+    	sass_log
+   	sass_report
+	${Boost_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES (sass_stager
+    sass_controlio
+    sass_log
+    sass_sample
+    sass_decomposition
+    sass_report
+    ${Boost_LIBRARIES}
+)
+
+TARGET_LINK_LIBRARIES (sass_scatter_devices  
+	sass_math 
+	sass_log
+	sass_report
+	sass_services
+	sass_controlio 
+	sass_decomposition
+	sass_stager
+	sass_sample 
+	${Boost_LIBRARIES} 
+)
+
